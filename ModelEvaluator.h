@@ -4,11 +4,14 @@
 #include <iostream>
 #include <mlpack/core/util/arma_traits.hpp>
 #include <type_traits>
+#include <string>
+
+using namespace mlpack;
 
 class ModelEvaluator {
   public:
     template<typename MLAlgorithm, typename DataType, typename ResponsesType>
-      static double Evaluate(
+      static std::string Evaluate(
           MLAlgorithm& model,
           const DataType& data,
           const ResponsesType& labels) {
@@ -17,9 +20,7 @@ class ModelEvaluator {
         model.Predict(data, predictions);
         arma::rowvec predY = round(predictions);  // Set threshold
 
-        ClassificationReport(predY, labels);
-
-        return 0.0;
+        return ClassificationReport(predY, labels);
       }
 
     // Utility functions for evaluation metrics.
@@ -42,9 +43,12 @@ class ModelEvaluator {
       return 2 * (prec * rec) / (prec + rec);
     }
 
-    static void ClassificationReport(const arma::Row<double>& yPreds, const arma::Row<double>& yTrue) {
+    static std::string ClassificationReport(const arma::Row<double>& yPreds, const arma::Row<double>& yTrue) {
       arma::Row<double> uniqs = arma::unique(yTrue);
-      std::cout << std::setw(14) << "precision" << std::setw(15) << "recall"
+
+      std::ostringstream out;
+
+      out << std::setw(14) << "precision" << std::setw(15) << "recall"
         << std::setw(15) << "f1-score" << std::setw(15) << "support"
         << '\n' << '\n';
 
@@ -54,17 +58,19 @@ class ModelEvaluator {
         double trueNeg = arma::accu(yTrue != val && yPreds != val && yPreds == yTrue);
         double falseNeg = arma::accu(yPreds != val && yPreds != yTrue);
 
-        std::cout << val
+        out<< val
           << std::setw(12) << std::setprecision(2) << ComputePrecision(truePos, falsePos)
           << std::setw(16) << std::setprecision(2) << ComputeRecall(truePos, falseNeg)
           << std::setw(14) << std::setprecision(2) << ComputeF1Score(truePos, falsePos, falseNeg)
           << std::setw(16) << truePos
           << '\n';
       }
+    
+      return out.str();
     }
 
 
-
+    
 };
 
 

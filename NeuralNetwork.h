@@ -21,6 +21,8 @@ void runBaseFNN(
   scaleX.Transform(trainX, scTrainX);
   scaleX.Transform(testX, scTestX);
 
+  // data::Save("data/scalar.bin", "scalar", scaleX, true);
+
   const int EPOCHS = 30;
   constexpr double STEP_SIZE = 5e-2;
   constexpr int BATCH_SIZE = 32;
@@ -28,13 +30,11 @@ void runBaseFNN(
 
   // ========== Feed Forward Neural Network ========== /
 
-  FFN<MeanSquaredError, HeInitialization> model;
-  model.Add<Linear>(64);
-  model.Add<LeakyReLU>(); // Connection layer between two activation layers.
-  model.Add<Linear>(128);
-  model.Add<LeakyReLU>();
-  model.Add<Linear>(64);
-  model.Add<LeakyReLU>(); 
+  FFN<MeanSquaredError, RandomInitialization> model;
+  model.Add<Linear>(32);
+  model.Add<FlexibleReLU>();
+  model.Add<Linear>(16);
+  model.Add<Sigmoid>();
   model.Add<Linear>(1);
 
   // Optimizer
@@ -57,12 +57,11 @@ void runBaseFNN(
                             // Stops the optimization process if the loss stops decreasing
                             // or no improvement has been made. This will terminate the
                             // optimization once we obtain a minima on training set.
-      ens::EarlyStopAtMinLoss(20));
+      ens::EarlyStopAtMinLoss(20)); 
 
   // data::Load("models/nn.bin", "nn", model);
-  // data::Save("models/nn.bin", "nn", model, true);
-
-  ModelEvaluator::Evaluate(model, scTestX, testY);
+//   data::Save("models/nn.bin", "nn", model, true);  
+  std::cout << ModelEvaluator::Evaluate(model, scTestX, testY);
 }
 
 #endif //MLPACK_PROJECT_NN_H
