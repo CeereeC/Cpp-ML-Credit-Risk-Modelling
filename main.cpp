@@ -88,6 +88,19 @@ int main() {
    // Test
    ClassificationReport(predY, testY);
 
+   // ============ Tuning ============== //
+  // Using 80% of data for training and remaining 20% for assessing MSE.
+  double validationSize = 0.2;
+  HyperParameterTuner<LinearRegression, MSE, SimpleCV> hpt(validationSize,
+      trainX, trainY);
+
+  // Finding a good value for lambda from the discrete set of values 0.0, 0.001,
+  // 0.01, 0.1, and 1.0.
+  arma::vec lambdas{0.0, 0.001, 0.01, 0.1, 1.0};
+  double bestLambda;
+  std::tie(bestLambda) = hpt.Optimize(lambdas);
+  std::cout << bestLambda << '\n';
+
   return 0;
 }
 
