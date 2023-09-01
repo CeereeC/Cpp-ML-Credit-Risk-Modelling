@@ -59,6 +59,8 @@ void runBaseFNN(
                             // optimization once we obtain a minima on training set.
       ens::EarlyStopAtMinLoss(20));
 
+  // data::Load("models/nn.bin", "nn", model);
+  // data::Save("models/nn.bin", "nn", model, true);
 
   ModelEvaluator::Evaluate(model, scTestX, testY);
 }

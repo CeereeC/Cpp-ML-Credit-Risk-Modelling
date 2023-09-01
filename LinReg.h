@@ -14,10 +14,12 @@ void runBaseLinReg(
     const arma::mat &trainY,
     const arma::mat &testX, 
     const arma::mat &testY) {
-  // Regress
+
   LinearRegression lr(trainX, trainY);
-  // Test
   ModelEvaluator::Evaluate(lr, testX, testY);
+
+  // data::Load("models/lr.bin", "lr", lr);
+  // data::Save("models/lr.bin", "lr", lr, true);
 }
 
 
