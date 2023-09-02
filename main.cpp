@@ -1,8 +1,8 @@
-// #define MLPACK_ENABLE_ANN_SERIALIZATION
+#define MLPACK_ENABLE_ANN_SERIALIZATION
 #include <mlpack.hpp>
 #include "crow_all.h"
 #include <iostream>
-#include "ModelGenerator.h"
+#include "generator/ModelGenerator.h"
 #include "eval/ModelEvaluator.h"
 #include "deserializer/PredictRequestDeserializer.h"
 
@@ -13,8 +13,8 @@ int main() {
   LinearRegression lr;
   data::Load("models/lr.bin", "lr", lr);
 
-  // FFN<MeanSquaredError, RandomInitialization> nn;;
-  // data::Load("models/nn.bin", "nn", nn);
+  FFN<MeanSquaredError, RandomInitialization> nn;
+  data::Load("models/nn.bin", "nn", nn);
 
   data::MinMaxScaler scalar;
   data::Load("data/scalar.bin", "scalar", scalar);
@@ -66,10 +66,10 @@ int main() {
     return crow::response(200, eval);
   });
 
-  // CROW_ROUTE(app, "/nn/stats")([&](){
-  //   std::string eval = ModelEvaluator::Evaluate(nn, scaledX, dataY); 
-  //   return crow::response(200, eval);
-  // });
+  CROW_ROUTE(app, "/nn/stats")([&](){
+    std::string eval = ModelEvaluator::Eval(nn, scaledX, dataY); 
+    return crow::response(200, eval);
+  });
 
   CROW_ROUTE(app, "/linear/predict").methods(crow::HTTPMethod::POST)
   ([&](const crow::request &req){
@@ -92,29 +92,29 @@ int main() {
       return crow::response(200, response.str());
   });
 
-  // CROW_ROUTE(app, "/nn/predict").methods(crow::HTTPMethod::POST)
-  // ([&](const crow::request &req){
-  //     auto body = crow::json::load(req.body);
-  //     if (!body) 
-  //       return crow::response(400, "Invalid body");
-  //     arma::colvec input(19);
+  CROW_ROUTE(app, "/nn/predict").methods(crow::HTTPMethod::POST)
+  ([&](const crow::request &req){
+      auto body = crow::json::load(req.body);
+      if (!body) 
+        return crow::response(400, "Invalid body");
+      arma::colvec input(19);
       
-  //     try {
-  //       deserializer.convertRequestBodyToInput(body, input);
-  //     } catch (const std::runtime_error &err) {
-  //       return crow::response(400, "Invalid body");
-  //     }
+      try {
+        deserializer.convertRequestBodyToInput(body, input);
+      } catch (const std::runtime_error &err) {
+        return crow::response(400, "Invalid body");
+      }
 
-  //     arma::colvec scaledInput;
-  //     scalar.Transform(input, scaledInput);
+      arma::colvec scaledInput;
+      scalar.Transform(input, scaledInput);
 
-  //     arma::rowvec predictions;
-  //     nn.Predict(scaledInput, predictions);
-  //     std::ostringstream response;
-  //     response << "Predictions: " << predictions << '\n';
+      arma::rowvec predictions;
+      nn.Predict(scaledInput, predictions);
+      std::ostringstream response;
+      response << "Predictions: " << predictions << '\n';
 
-  //     return crow::response(200, response.str());
-  // });
+      return crow::response(200, response.str());
+  });
 
   CROW_ROUTE(app, "/generate")([](){
     ModelGenerator::generateModels();

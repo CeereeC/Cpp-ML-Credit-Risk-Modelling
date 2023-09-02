@@ -22,7 +22,7 @@ class ModelEvaluator {
 
     template<typename MLAlgorithm, typename DataType, typename ResponsesType>
     static std::string Eval(
-          const MLAlgorithm& model,
+          MLAlgorithm& model,
           const DataType& data,
           const ResponsesType& labels) {
 
