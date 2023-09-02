@@ -4,9 +4,8 @@
 #include <mlpack/core/util/arma_traits.hpp>
 #include <mlpack/core/data/scaler_methods/min_max_scaler.hpp>
 #include <mlpack/methods/ann/ffn.hpp>
-#include "ModelEvaluator.h"
 
-void runBaseFNN(
+void generateBaseFNN(
 
     const arma::mat &trainX, 
     const arma::mat &trainY,
@@ -60,8 +59,8 @@ void runBaseFNN(
       ens::EarlyStopAtMinLoss(20)); 
 
   // data::Load("models/nn.bin", "nn", model);
-//   data::Save("models/nn.bin", "nn", model, true);  
-  std::cout << ModelEvaluator::Evaluate(model, scTestX, testY);
+  // data::Save("models/nn.bin", "nn", model, true);  
+  std::cout << "FNN generated!" <<'\n';
 }
 
 #endif //MLPACK_PROJECT_NN_H

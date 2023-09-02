@@ -10,7 +10,7 @@ using namespace mlpack;
 
 class ModelGenerator {
 public:
-  static void generate() {
+  static void generateModels() {
     arma::mat dataset;  
     data::DatasetInfo info;
     data::Load("data/cleaned_credit_data.csv", dataset, info); // Remember that Load(...) transposes the matrix
@@ -28,12 +28,12 @@ public:
     arma::mat testY = testData.row(testData.n_rows - 1);
 
     // ============ Linear Regression ============= //
-    // runBaseLinReg(trainX, trainY, testX, testY);
+    generateBaseLinReg(trainX, trainY, testX, testY);
     // runTunedLinReg(trainX, trainY, testX, testY);
 
     // ============ Neural Network ============= //
 
-    runBaseFNN(trainX, trainY, testX, testY, trainData.n_cols);
+    generateBaseFNN(trainX, trainY, testX, testY, trainData.n_cols);
   }
 
 };

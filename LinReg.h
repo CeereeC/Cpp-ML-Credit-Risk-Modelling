@@ -8,7 +8,7 @@
 
 using namespace mlpack;
 
-void runBaseLinReg(
+void generateBaseLinReg(
     const arma::mat &trainX, 
     const arma::mat &trainY,
     const arma::mat &testX, 

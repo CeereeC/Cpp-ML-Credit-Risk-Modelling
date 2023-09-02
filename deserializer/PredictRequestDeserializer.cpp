@@ -1,9 +1,8 @@
-
 #include "PredictRequestDeserializer.h"
-#include "crow_all.h"
-#include <mlpack/core/util/arma_traits.hpp>
 
-using namespace mlpack;
+PredictRequestDeserializer::PredictRequestDeserializer(
+      data::DatasetInfo const &infoPtr,
+      std::vector<std::string> const &dimensionToDataFieldPtr): info(infoPtr),dimensionToDataField(dimensionToDataFieldPtr){}
 
 void PredictRequestDeserializer::convertRequestBodyToInput(crow::json::rvalue &body, arma::colvec &input) {
   for (size_t i = 0; i < input.size(); ++i) {
@@ -19,4 +18,3 @@ void PredictRequestDeserializer::convertRequestBodyToInput(crow::json::rvalue &b
     input(i) = info.MapString<double>(ss, i);
   }
 }
-

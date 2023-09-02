@@ -2,8 +2,8 @@
 #define MLPACK_PROJECT_PREDICT_REQUEST_DESERIALIZER_H
 
 #include <vector>
-#include "crow_all.h"
-#include <mlpack/core/util/arma_traits.hpp>
+#include "../crow_all.h"
+#include <mlpack.hpp>
 
 using namespace mlpack;
 
@@ -14,7 +14,7 @@ private:
 public:
     PredictRequestDeserializer(
       data::DatasetInfo const &infoPtr,
-      std::vector<std::string> const &dimensionToDataFieldPtr): info(infoPtr),dimensionToDataField(dimensionToDataFieldPtr){};
+      std::vector<std::string> const &dimensionToDataFieldPtr);
 
     void convertRequestBodyToInput(crow::json::rvalue &body, arma::colvec &input);
    
