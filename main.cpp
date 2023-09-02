@@ -1,9 +1,10 @@
-#define MLPACK_ENABLE_ANN_SERIALIZATION
+// #define MLPACK_ENABLE_ANN_SERIALIZATION
 #include <mlpack.hpp>
 #include "crow_all.h"
 #include <iostream>
 #include "ModelGenerator.h"
 #include "ModelEvaluator.h"
+#include "deserializer/PredictRequestDeserializer.h"
 
 using namespace mlpack;
 
@@ -24,12 +25,9 @@ int main() {
   arma::mat dataset;  
   data::Load("data/cleaned_credit_data.csv", dataset, info);
 
-  arma::mat dataX = dataset.submat(0, 0, dataset.n_rows - 2, dataset.n_cols - 1);
-  arma::mat dataY = dataset.row(dataset.n_rows - 1);
-  arma::mat scaledX;
-  scalar.Transform(dataX, scaledX);
-
-  std::vector<std::string> dimensionToDataField = {
+  // Index represents the Dimension. 
+  // E.g "Senior Citizen" is in dimension 1. "Dependents" is in dimension 3
+  std::vector<std::string> dimensionToDataField = { 
     "gender",
     "SeniorCitizen",
     "Partner",           
@@ -49,6 +47,13 @@ int main() {
     "PaymentMethod",     
     "MonthlyCharges",    
     "TotalCharges"};
+  
+  PredictRequestDeserializer deserializer(info, dimensionToDataField);
+
+  arma::mat dataX = dataset.submat(0, 0, dataset.n_rows - 2, dataset.n_cols - 1);
+  arma::mat dataY = dataset.row(dataset.n_rows - 1);
+  arma::mat scaledX;
+  scalar.Transform(dataX, scaledX);
 
   crow::SimpleApp app;
 
@@ -74,18 +79,7 @@ int main() {
       arma::colvec input(19);
       
       try {
-        for (size_t i = 0; i < 19; ++i) {
-          auto field = body[dimensionToDataField[i]];
-            std::string ss;
-            if (field.t() == crow::json::type::String) {
-              ss = field.s();   // If you don't do this, it'll return "abc" with the quotes
-            } else {
-              std::ostringstream os;
-              os << field;
-              ss = os.str();
-            }
-            input(i) = info.MapString<double>(ss, i);
-        } 
+        deserializer.convertRequestBodyToInput(body, input);
       } catch (const std::runtime_error &err) {
         return crow::response(400, "Invalid body");
       }
@@ -98,7 +92,7 @@ int main() {
       return crow::response(200, response.str());
   });
 
-    CROW_ROUTE(app, "/nn/predict").methods(crow::HTTPMethod::POST)
+  CROW_ROUTE(app, "/nn/predict").methods(crow::HTTPMethod::POST)
   ([&](const crow::request &req){
       auto body = crow::json::load(req.body);
       if (!body) 
@@ -106,18 +100,7 @@ int main() {
       arma::colvec input(19);
       
       try {
-        for (size_t i = 0; i < 19; ++i) {
-          auto field = body[dimensionToDataField[i]];
-            std::string ss;
-            if (field.t() == crow::json::type::String) {
-              ss = field.s();   // If you don't do this, it'll return "abc" with the quotes
-            } else {
-              std::ostringstream os;
-              os << field;
-              ss = os.str();
-            }
-            input(i) = info.MapString<double>(ss, i);
-        } 
+        deserializer.convertRequestBodyToInput(body, input);
       } catch (const std::runtime_error &err) {
         return crow::response(400, "Invalid body");
       }
@@ -127,7 +110,6 @@ int main() {
 
       arma::rowvec predictions;
       nn.Predict(scaledInput, predictions);
-      // std::cout << "Input: " << scaledInput << '\n';
       std::ostringstream response;
       response << "Predictions: " << predictions << '\n';
 
