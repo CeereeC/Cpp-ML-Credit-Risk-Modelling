@@ -80,6 +80,14 @@ int main() {
     std::string eval = ModelEvaluator::Eval(nn, scaledX, dataY); 
     return crow::response(200, eval);
   });
+  
+  CROW_ROUTE(app, "/dt/stats")([&](){
+    arma::Row<size_t> predictions;
+    dt.Classify(dataX, predictions);
+    arma::Row<size_t> trueY = arma::conv_to<arma::Row<size_t>>::from(dataY);
+    std::string eval = ModelEvaluator::ClassificationReport(predictions, trueY);
+    return crow::response(200, eval);
+  });
 
   CROW_ROUTE(app, "/lr/predict").methods(crow::HTTPMethod::POST)
   ([&](const crow::request &req){
@@ -101,6 +109,29 @@ int main() {
 
       return crow::response(200, response.str());
   });
+  
+  
+  CROW_ROUTE(app, "/dt/predict").methods(crow::HTTPMethod::POST)
+  ([&](const crow::request &req){
+      auto body = crow::json::load(req.body);
+      if (!body) 
+        return crow::response(400, "Invalid body");
+      arma::colvec input(19);
+      
+      try {
+        deserializer.convertRequestBodyToInput(body, input);
+      } catch (const std::runtime_error &err) {
+        return crow::response(400, "Invalid body");
+      }
+
+      arma::Row<size_t> predictions;
+      dt.Classify(input, predictions);
+      std::ostringstream response;
+      response << "Predictions: " << predictions << '\n';
+
+      return crow::response(200, response.str());
+  });
+
 
   CROW_ROUTE(app, "/nn/predict").methods(crow::HTTPMethod::POST)
   ([&](const crow::request &req){
