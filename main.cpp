@@ -13,9 +13,6 @@ int main() {
   DecisionTree<> dt;
   FFN<MeanSquaredError, RandomInitialization> nn;
   
-  data::Load("models/lr.bin", "lr", lr);
-  data::Load("models/dt.bin", "dt", dt);
-
   data::MinMaxScaler scalar;
   data::Load("data/scalar.bin", "scalar", scalar);
 
@@ -64,12 +61,17 @@ int main() {
   CROW_ROUTE(app, "/generate")([&modelGenerator](){
     modelGenerator.generateBaseLinReg();
     modelGenerator.generateBaseDT();
-
     return "Models generated!";
   });
 
+  CROW_ROUTE(app, "/load")([&modelGenerator, &lr, &dt, &nn](){
+    data::Load("models/lr.bin", "lr", lr);
+    data::Load("models/dt.bin", "dt", dt);
+    modelGenerator.generateBaseFNN(nn);
+    return "Models loaded!";
+  });
 
-  CROW_ROUTE(app, "/linear/stats")([&](){
+  CROW_ROUTE(app, "/lr/stats")([&](){
     std::string eval = ModelEvaluator::Eval(lr, dataX, dataY); 
     return crow::response(200, eval);
   });
@@ -79,7 +81,7 @@ int main() {
     return crow::response(200, eval);
   });
 
-  CROW_ROUTE(app, "/linear/predict").methods(crow::HTTPMethod::POST)
+  CROW_ROUTE(app, "/lr/predict").methods(crow::HTTPMethod::POST)
   ([&](const crow::request &req){
       auto body = crow::json::load(req.body);
       if (!body) 

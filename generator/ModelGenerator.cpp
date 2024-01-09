@@ -59,7 +59,6 @@ void ModelGenerator::generateBaseFNN(
   constexpr double STOP_TOLERANCE = 1e-8;
 
   // ========== Feed Forward Neural Network ========== /
-  model.Reset();  
   model.Add<Linear>(32);
   model.Add<FlexibleReLU>();
   model.Add<Linear>(16);
