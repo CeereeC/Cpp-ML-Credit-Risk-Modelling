@@ -13,25 +13,20 @@ public:
 
   static void generateBaseLinReg(
     const arma::mat &trainX, 
-    const arma::mat &trainY,
-    const arma::mat &testX, 
-    const arma::mat &testY);
+    const arma::mat &trainY);
 
   static void runTunedLinReg(
     const arma::mat &trainX, 
-    const arma::mat &trainY,
-    const arma::mat &testX, 
-    const arma::mat &testY);
+    const arma::mat &trainY);
 
   static void generateBaseFNN(
     const arma::mat &trainX, 
     const arma::mat &trainY,
-    const arma::mat &testX, 
-    const arma::mat &testY,
     size_t num_data);
 
-  
-
+  static void generateBaseDT(
+    const arma::mat &trainX, 
+    const arma::mat &trainY);
 };
 
 #endif //MLPACK_PROJECT_MODEL_GEN_H

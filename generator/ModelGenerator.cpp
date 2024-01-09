@@ -1,48 +1,45 @@
 #include "ModelGenerator.h"
 
 void ModelGenerator::generateModels() {
-    arma::mat dataset;  
-    data::DatasetInfo info;
-    data::Load("data/cleaned_credit_data.csv", dataset, info); // Remember that Load(...) transposes the matrix
-    data::Save("data/dataset_info.bin", "dataset_info", info, true);
+  arma::mat dataset;  
+  data::DatasetInfo info;
+  data::Load("data/cleaned_credit_data.csv", dataset, info); // Remember that Load(...) transposes the matrix
+  data::Save("data/dataset_info.bin", "dataset_info", info, true);
 
-    // ============ Preprocess Data ============= //
+  // ============ Preprocess Data ============= //
 
-    arma::mat trainData, testData;
-    data::Split(dataset, trainData, testData, 0.1);
+  arma::mat trainData, testData;
+  data::Split(dataset, trainData, testData, 0.1);
 
-    arma::mat trainX = trainData.submat(0, 0, trainData.n_rows - 2, trainData.n_cols - 1);
-    arma::mat testX = testData.submat(0, 0, testData.n_rows - 2, testData.n_cols - 1);
+  arma::mat trainX = trainData.submat(0, 0, trainData.n_rows - 2, trainData.n_cols - 1);
+  arma::mat testX = testData.submat(0, 0, testData.n_rows - 2, testData.n_cols - 1);
 
-    arma::mat trainY = trainData.row(trainData.n_rows - 1);
-    arma::mat testY = testData.row(testData.n_rows - 1);
+  arma::mat trainY = trainData.row(trainData.n_rows - 1);
+  arma::mat testY = testData.row(testData.n_rows - 1);
 
-    // ============ Linear Regression ============= //
-    generateBaseLinReg(trainX, trainY, testX, testY);
-    runTunedLinReg(trainX, trainY, testX, testY);
+  // ============ Linear Regression ============= //
+  generateBaseLinReg(trainX, trainY);
+  
+  // ============ Decision Tree ============= //
+  generateBaseDT(trainX, trainY);
 
-    // ============ Neural Network ============= //
-
-    generateBaseFNN(trainX, trainY, testX, testY, trainData.n_cols);
+  // ============ Neural Network ============= //
+  generateBaseFNN(trainX, trainY, trainData.n_cols);
 }
 
 void ModelGenerator::generateBaseLinReg(
     const arma::mat &trainX, 
-    const arma::mat &trainY,
-    const arma::mat &testX, 
-    const arma::mat &testY) {
+    const arma::mat &trainY) {
 
   LinearRegression lr(trainX, trainY);
   data::Save("models/lr.bin", "lr", lr, true);
-  std::cout << "Linear Regression Model generated!";
+  std::cout << "Linear Regression Model generated!" << '\n';
 }
 
 void ModelGenerator::runTunedLinReg(
     const arma::mat &trainX, 
-    const arma::mat &trainY,
-    const arma::mat &testX, 
-    const arma::mat &testY) {
-  
+    const arma::mat &trainY) {
+
   // Using 80% of data for training and remaining 20% for assessing MSE.
   double validationSize = 0.2;
   HyperParameterTuner<LinearRegression, MSE, SimpleCV> hpt(validationSize,
@@ -56,19 +53,26 @@ void ModelGenerator::runTunedLinReg(
 
 }
 
+void ModelGenerator::generateBaseDT(
+    const arma::mat &trainX,
+    const arma::mat &trainY) {
+
+  arma::Row<size_t> dataY = arma::conv_to<arma::Row<size_t>>::from(trainY);
+  DecisionTree<> dt(trainX, dataY, 2);
+  data::Save("models/dt.bin", "dt", dt, true);
+  std::cout << "Decision Tree Model generated!" << '\n';
+}
+
 void ModelGenerator::generateBaseFNN(
     const arma::mat &trainX, 
     const arma::mat &trainY,
-    const arma::mat &testX, 
-    const arma::mat &testY,
     size_t num_data) {
 
   // Scale all data into the range (0, 1) for increased numerical stability.
   data::MinMaxScaler scaleX;
-  arma::mat scTrainX, scTestX;
+  arma::mat scTrainX;
   scaleX.Fit(trainX);
   scaleX.Transform(trainX, scTrainX);
-  scaleX.Transform(testX, scTestX);
 
   // Save Scalar to reuse when transforming input
   data::Save("data/scalar.bin", "scalar", scaleX, true);
