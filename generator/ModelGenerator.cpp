@@ -109,6 +109,5 @@ void ModelGenerator::generateBaseFNN(
                             // optimization once we obtain a minima on training set.
       ens::EarlyStopAtMinLoss(20)); 
 
-  data::Save("models/nn.bin", "nn", model, true);  
   std::cout << "FNN generated!" <<'\n';
 }

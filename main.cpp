@@ -1,4 +1,3 @@
-#define MLPACK_ENABLE_ANN_SERIALIZATION
 #include <mlpack.hpp>
 #include "crow_all.h"
 #include <iostream>
@@ -9,13 +8,12 @@
 using namespace mlpack;
 
 int main() {
-
+ 
   LinearRegression lr;
   data::Load("models/lr.bin", "lr", lr);
 
   FFN<MeanSquaredError, RandomInitialization> nn;
-  data::Load("models/nn.bin", "nn", nn);
-
+  
   data::MinMaxScaler scalar;
   data::Load("data/scalar.bin", "scalar", scalar);
 
