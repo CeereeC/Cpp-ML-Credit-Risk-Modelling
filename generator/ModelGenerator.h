@@ -8,25 +8,17 @@
 using namespace mlpack;
 
 class ModelGenerator {
+private:
+  arma::mat trainX;
+  arma::mat trainY;
 public:
-  static void generateModels();
+  
+  ModelGenerator(arma::mat &dataset);
 
-  static void generateBaseLinReg(
-    const arma::mat &trainX, 
-    const arma::mat &trainY);
-
-  static void runTunedLinReg(
-    const arma::mat &trainX, 
-    const arma::mat &trainY);
-
-  static void generateBaseFNN(
-    const arma::mat &trainX, 
-    const arma::mat &trainY,
-    size_t num_data);
-
-  static void generateBaseDT(
-    const arma::mat &trainX, 
-    const arma::mat &trainY);
+  void generateBaseLinReg();
+  void generateBaseFNN(FFN<MeanSquaredError, RandomInitialization> &model);
+  void generateBaseDT();
+  void runTunedLinReg();
 };
 
 #endif //MLPACK_PROJECT_MODEL_GEN_H

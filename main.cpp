@@ -10,18 +10,20 @@ using namespace mlpack;
 int main() {
  
   LinearRegression lr;
-  data::Load("models/lr.bin", "lr", lr);
-
+  DecisionTree<> dt;
   FFN<MeanSquaredError, RandomInitialization> nn;
   
+  data::Load("models/lr.bin", "lr", lr);
+  data::Load("models/dt.bin", "dt", dt);
+
   data::MinMaxScaler scalar;
   data::Load("data/scalar.bin", "scalar", scalar);
 
-  data::DatasetInfo info;
-  data::Load("data/dataset_info.bin", "dataset_info", info);
-
   arma::mat dataset;  
+  data::DatasetInfo info;
   data::Load("data/cleaned_credit_data.csv", dataset, info);
+  
+  ModelGenerator modelGenerator(dataset); 
 
   // Index represents the Dimension. 
   // E.g "Senior Citizen" is in dimension 1. "Dependents" is in dimension 3
@@ -58,6 +60,14 @@ int main() {
   CROW_ROUTE(app, "/")([](){
     return "Customer Credit Risk Modelling";
   });
+
+  CROW_ROUTE(app, "/generate")([&modelGenerator](){
+    modelGenerator.generateBaseLinReg();
+    modelGenerator.generateBaseDT();
+
+    return "Models generated!";
+  });
+
 
   CROW_ROUTE(app, "/linear/stats")([&](){
     std::string eval = ModelEvaluator::Eval(lr, dataX, dataY); 
@@ -112,11 +122,6 @@ int main() {
       response << "Predictions: " << predictions << '\n';
 
       return crow::response(200, response.str());
-  });
-
-  CROW_ROUTE(app, "/generate")([](){
-    ModelGenerator::generateModels();
-    return "Models generated!";
   });
 
 

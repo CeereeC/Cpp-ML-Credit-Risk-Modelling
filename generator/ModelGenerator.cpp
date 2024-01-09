@@ -1,44 +1,24 @@
 #include "ModelGenerator.h"
 
-void ModelGenerator::generateModels() {
-  arma::mat dataset;  
-  data::DatasetInfo info;
-  data::Load("data/cleaned_credit_data.csv", dataset, info); // Remember that Load(...) transposes the matrix
-  data::Save("data/dataset_info.bin", "dataset_info", info, true);
+
+ModelGenerator::ModelGenerator(arma::mat &dataset) {
 
   // ============ Preprocess Data ============= //
-
   arma::mat trainData, testData;
   data::Split(dataset, trainData, testData, 0.1);
 
-  arma::mat trainX = trainData.submat(0, 0, trainData.n_rows - 2, trainData.n_cols - 1);
-  arma::mat testX = testData.submat(0, 0, testData.n_rows - 2, testData.n_cols - 1);
-
-  arma::mat trainY = trainData.row(trainData.n_rows - 1);
-  arma::mat testY = testData.row(testData.n_rows - 1);
-
-  // ============ Linear Regression ============= //
-  generateBaseLinReg(trainX, trainY);
-  
-  // ============ Decision Tree ============= //
-  generateBaseDT(trainX, trainY);
-
-  // ============ Neural Network ============= //
-  generateBaseFNN(trainX, trainY, trainData.n_cols);
+  trainX = trainData.submat(0, 0, trainData.n_rows - 2, trainData.n_cols - 1);
+  trainY = trainData.row(trainData.n_rows - 1);
 }
 
-void ModelGenerator::generateBaseLinReg(
-    const arma::mat &trainX, 
-    const arma::mat &trainY) {
+void ModelGenerator::generateBaseLinReg() {
 
   LinearRegression lr(trainX, trainY);
   data::Save("models/lr.bin", "lr", lr, true);
   std::cout << "Linear Regression Model generated!" << '\n';
 }
 
-void ModelGenerator::runTunedLinReg(
-    const arma::mat &trainX, 
-    const arma::mat &trainY) {
+void ModelGenerator::runTunedLinReg() {
 
   // Using 80% of data for training and remaining 20% for assessing MSE.
   double validationSize = 0.2;
@@ -53,9 +33,7 @@ void ModelGenerator::runTunedLinReg(
 
 }
 
-void ModelGenerator::generateBaseDT(
-    const arma::mat &trainX,
-    const arma::mat &trainY) {
+void ModelGenerator::generateBaseDT() {
 
   arma::Row<size_t> dataY = arma::conv_to<arma::Row<size_t>>::from(trainY);
   DecisionTree<> dt(trainX, dataY, 2);
@@ -64,9 +42,7 @@ void ModelGenerator::generateBaseDT(
 }
 
 void ModelGenerator::generateBaseFNN(
-    const arma::mat &trainX, 
-    const arma::mat &trainY,
-    size_t num_data) {
+    FFN<MeanSquaredError, RandomInitialization> &model) {
 
   // Scale all data into the range (0, 1) for increased numerical stability.
   data::MinMaxScaler scaleX;
@@ -77,14 +53,13 @@ void ModelGenerator::generateBaseFNN(
   // Save Scalar to reuse when transforming input
   data::Save("data/scalar.bin", "scalar", scaleX, true);
 
-  const int EPOCHS = 30;
+  const int EPOCHS = 1000;
   constexpr double STEP_SIZE = 5e-2;
   constexpr int BATCH_SIZE = 32;
   constexpr double STOP_TOLERANCE = 1e-8;
 
   // ========== Feed Forward Neural Network ========== /
-
-  FFN<MeanSquaredError, RandomInitialization> model;
+  model.Reset();  
   model.Add<Linear>(32);
   model.Add<FlexibleReLU>();
   model.Add<Linear>(16);
@@ -98,7 +73,7 @@ void ModelGenerator::generateBaseFNN(
       0.9,        // Exponential decay rate for the first moment estimates.
       0.999,      // Exponential decay rate for the weighted infinity norm estimates.
       1e-8,       // Value used to initialise the mean squared gradient parameter.
-      num_data * EPOCHS, // Max number of iterations.
+      EPOCHS,     // Max number of iterations.
       1e-8,       // Tolerance.
       true);
 
