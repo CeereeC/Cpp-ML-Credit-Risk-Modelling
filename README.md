@@ -2,8 +2,7 @@
 
 ## About
 
-In this exercise, I build a Linear Regression Model and Forward Neural Network using [mlpack](https://github.com/mlpack/mlpack), a fast, header-only C++ machine learning library. 
-I then expose the models' functions via a REST API using [Crow](https://github.com/CrowCpp/Crow), a C++ Web Services Framework.
+In this exercise, I build Linear Regression, Decision Tree and Forward Neural Network models using [mlpack](https://github.com/mlpack/mlpack), a fast, header-only C++ machine learning library. I then expose the models' functions via a REST API using [Crow](https://github.com/CrowCpp/Crow), a C++ Web Services Framework.
 
 The task is to predict the likelihood of a customer defaulting on telco payments based on their telco data.
 The customer dataset I used contains information about a fictional telco company that provides home phone and Internet services to 7048 customers. It indicates which customers have left, stayed, or signed up for their service.
@@ -28,7 +27,8 @@ To just run the application,
 
 ### 1. Model Prediction 
 ```
-POST /linear/predict   // Use the linear regression model
+POST /lr/predict       // Use the linear regression model
+POST /dt/predict       // Use the decision tree model
 POST /nn/predict       // Use the neural network model
 ```
 Post a json object of customer data. Returns the model prediction.
@@ -63,7 +63,8 @@ Predictions:    0.2546
 ```
 ### 2. Model Metrics 
 ```
-GET /linear/stats   
+GET /lr/stats
+GET /dt/stats 
 GET /nn/stats      
 ```
 Returns the metrics about the model.  
@@ -78,8 +79,17 @@ Response:
 ```
 GET /generate     
 ```
-Regenerates the models, dataset encoders and scalars.  
+Generates the models, dataset encoders and scalars and saves them to disk.
 Response:  
 ```
 Models generated!
+```
+### 4. Load Models 
+```
+GET /load     
+```
+Loads the previously generated models, dataset encoders and scalars into memory.  
+Response:  
+```
+Models loaded!
 ```
